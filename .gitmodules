@@ -10,3 +10,6 @@
 [submodule "packages/foundry/lib/ccip"]
 	path = packages/foundry/lib/ccip
 	url = https://github.com/smartcontractkit/ccip
+[submodule "packages/foundry/lib/account-abstraction"]
+	path = packages/foundry/lib/account-abstraction
+	url = git@github.com:eth-infinitism/account-abstraction.git
