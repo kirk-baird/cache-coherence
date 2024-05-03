@@ -14,17 +14,19 @@ import "@account-abstraction/core/Helpers.sol";
 import "@account-abstraction/samples/callback/TokenCallbackHandler.sol";
 
 /**
-  * minimal account.
-  *  this is sample minimal account.
+  * RecoverableAccount.
+  *  This is recoverable account,
   *  has execute, eth handling methods
   *  has a single signer that can send requests through the entryPoint.
+  *  The recoverable extension allows authentication through a WorldCoin ID
   */
-contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, Initializable {
-    address public owner;
+contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
 
     IEntryPoint private immutable _entryPoint;
 
-    event SimpleAccountInitialized(IEntryPoint indexed entryPoint, address indexed owner);
+    address public owner;
+
+    event AccountRecovered(address indexed oldOwner, address indexed newOwner);
 
     modifier onlyOwner() {
         _onlyOwner();
@@ -39,9 +41,12 @@ contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
     // solhint-disable-next-line no-empty-blocks
     receive() external payable {}
 
-    constructor(IEntryPoint anEntryPoint) {
+    // Create a RecoverableAccount
+    constructor(IEntryPoint anEntryPoint, address anOwner) {
+        // TODO: Add world ID, CCIP Router address, dst chain, dst address
         _entryPoint = anEntryPoint;
-        _disableInitializers();
+        owner = anOwner;
+        emit SimpleAccountInitialized(anEntryPoint, anOwner);
     }
 
     function _onlyOwner() internal view {
@@ -79,21 +84,6 @@ contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
                 _call(dest[i], value[i], func[i]);
             }
         }
-    }
-
-    /**
-     * @dev The _entryPoint member is immutable, to reduce gas consumption.  To upgrade EntryPoint,
-     * a new implementation of SimpleAccount must be deployed with the new EntryPoint address, then upgrading
-      * the implementation by calling `upgradeTo()`
-      * @param anOwner the owner (signer) of this account
-     */
-    function initialize(address anOwner) public virtual initializer {
-        _initialize(anOwner);
-    }
-
-    function _initialize(address anOwner) internal virtual {
-        owner = anOwner;
-        emit SimpleAccountInitialized(_entryPoint, owner);
     }
 
     // Require the function call went through EntryPoint or owner
@@ -145,6 +135,25 @@ contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
     function _authorizeUpgrade(address newImplementation) internal view override {
         (newImplementation);
         _onlyOwner();
+    }
+
+    // Recovery function to begin update of the `owner` address.
+    //
+    // Authenticates identity via WorldCoin
+    function recoverAccount() external {
+        // TODO: Add function parameters
+        // TODO: Call CCIP with world coin authentication
+    }
+
+    // Callback after WorldCoin authentication has occurred
+    //
+    // Called from CCIP bridge to confirm authentication
+    function callbackRecoverAccount() external {
+        // TODO: Verify caller is CCIP Bridge
+        // TODO: Update owner address to new address
+
+        // TODO: Emit event details
+        // emit AccountRecovered(oldOwner, newOwner);
     }
 }
 
