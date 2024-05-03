@@ -9,9 +9,9 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../core/BaseAccount.sol";
-import "../core/Helpers.sol";
-import "./callback/TokenCallbackHandler.sol";
+import "@account-abstraction/core/BaseAccount.sol";
+import "@account-abstraction/core/Helpers.sol";
+import "@account-abstraction/samples/callback/TokenCallbackHandler.sol";
 
 /**
   * minimal account.
