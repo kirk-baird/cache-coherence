@@ -21,38 +21,40 @@ import "@account-abstraction/samples/callback/TokenCallbackHandler.sol";
   *  The recoverable extension allows authentication through a WorldCoin ID
   */
 contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
+    /**
+    * Constants and Immutables
+    */
+    IEntryPoint private immutable ENTRY_POINT;
 
-    IEntryPoint private immutable _entryPoint;
-
+    /**
+    * Storage variables
+    */
     address public owner;
 
+    /**
+    * Events
+    */
     event AccountRecovered(address indexed oldOwner, address indexed newOwner);
 
-    modifier onlyOwner() {
-        _onlyOwner();
-        _;
-    }
-
-    /// @inheritdoc BaseAccount
-    function entryPoint() public view virtual override returns (IEntryPoint) {
-        return _entryPoint;
-    }
-
-    // solhint-disable-next-line no-empty-blocks
-    receive() external payable {}
+    /*
+    * Public and External Functions
+    */
 
     // Create a RecoverableAccount
     constructor(IEntryPoint anEntryPoint, address anOwner) {
         // TODO: Add world ID, CCIP Router address, dst chain, dst address
-        _entryPoint = anEntryPoint;
+        ENTRY_POINT = anEntryPoint;
         owner = anOwner;
         emit SimpleAccountInitialized(anEntryPoint, anOwner);
     }
 
-    function _onlyOwner() internal view {
-        //directly from EOA owner, or through the account itself (which gets redirected through execute())
-        require(msg.sender == owner || msg.sender == address(this), "only owner");
+    /// @inheritdoc BaseAccount
+    function entryPoint() public view virtual override returns (IEntryPoint) {
+        return ENTRY_POINT;
     }
+
+    // solhint-disable-next-line no-empty-blocks
+    receive() external payable {}
 
     /**
      * execute a transaction (called directly from owner, or by entryPoint)
@@ -86,6 +88,61 @@ contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
         }
     }
 
+    /**
+     * check current account deposit in the entryPoint
+     */
+     function getDeposit() public view returns (uint256) {
+        return entryPoint().balanceOf(address(this));
+    }
+
+    /**
+     * deposit more funds for this account in the entryPoint
+     */
+    function addDeposit() public payable {
+        entryPoint().depositTo{value: msg.value}(address(this));
+    }
+
+    /**
+     * withdraw value from the account's deposit
+     * @param withdrawAddress target to send to
+     * @param amount to withdraw
+     */
+    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) public onlyOwner {
+        entryPoint().withdrawTo(withdrawAddress, amount);
+    }
+
+    /**
+    * Recovery function to begin update of the `owner` address.
+    * Authenticates identity via WorldCoin
+    */
+    function recoverAccount() external {
+        // TODO: Add function parameters
+        // TODO: Call CCIP with world coin authentication
+    }
+
+    /**
+    * Callback after WorldCoin authentication has occurred
+    * Called from CCIP bridge to confirm authentication
+    */
+    function callbackRecoverAccount() external {
+        // TODO: Verify caller is CCIP Bridge
+        // TODO: Update owner address to new address
+
+        // TODO: Emit event details
+        // emit AccountRecovered(oldOwner, newOwner);
+    }
+
+
+
+    /*
+    * Internal and Private functions
+    */
+
+    function _onlyOwner() internal view {
+        //directly from EOA owner, or through the account itself (which gets redirected through execute())
+        require(msg.sender == owner || msg.sender == address(this), "only owner");
+    }
+
     // Require the function call went through EntryPoint or owner
     function _requireFromEntryPointOrOwner() internal view {
         require(msg.sender == address(entryPoint()) || msg.sender == owner, "account: not Owner or EntryPoint");
@@ -107,53 +164,6 @@ contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
                 revert(add(result, 32), mload(result))
             }
         }
-    }
-
-    /**
-     * check current account deposit in the entryPoint
-     */
-    function getDeposit() public view returns (uint256) {
-        return entryPoint().balanceOf(address(this));
-    }
-
-    /**
-     * deposit more funds for this account in the entryPoint
-     */
-    function addDeposit() public payable {
-        entryPoint().depositTo{value: msg.value}(address(this));
-    }
-
-    /**
-     * withdraw value from the account's deposit
-     * @param withdrawAddress target to send to
-     * @param amount to withdraw
-     */
-    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) public onlyOwner {
-        entryPoint().withdrawTo(withdrawAddress, amount);
-    }
-
-    function _authorizeUpgrade(address newImplementation) internal view override {
-        (newImplementation);
-        _onlyOwner();
-    }
-
-    // Recovery function to begin update of the `owner` address.
-    //
-    // Authenticates identity via WorldCoin
-    function recoverAccount() external {
-        // TODO: Add function parameters
-        // TODO: Call CCIP with world coin authentication
-    }
-
-    // Callback after WorldCoin authentication has occurred
-    //
-    // Called from CCIP bridge to confirm authentication
-    function callbackRecoverAccount() external {
-        // TODO: Verify caller is CCIP Bridge
-        // TODO: Update owner address to new address
-
-        // TODO: Emit event details
-        // emit AccountRecovered(oldOwner, newOwner);
     }
 }
 
