@@ -13,3 +13,6 @@
 [submodule "packages/foundry/lib/account-abstraction"]
 	path = packages/foundry/lib/account-abstraction
 	url = git@github.com:eth-infinitism/account-abstraction.git
+[submodule "packages/foundry/lib/openzeppelin-contracts-upgradeable"]
+	path = packages/foundry/lib/openzeppelin-contracts-upgradeable
+	url = git@github.com:OpenZeppelin/openzeppelin-contracts-upgradeable.git
