@@ -122,12 +122,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     function recoverAccount(RecoveryPayload calldata recoveryPayload) external payable {
         // TODO: Add function parameters
         // TODO: Call CCIP with world coin authentication
-<<<<<<< HEAD
-
-        transferOwnership(newOwner);
-=======
         _sendIDToVerifier(recoveryPayload);
->>>>>>> 245c701 (add WorldIDVerifierInstance.sol)
     }
 
     /**
