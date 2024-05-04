@@ -134,7 +134,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
         // TODO: Update owner address to new address
 
         // TODO: Emit event details
-        transferOwnership(newOwner);
+        // transferOwnership(newOwner);
     }
 
     function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, TokenCallbackHandler) returns (bool) {

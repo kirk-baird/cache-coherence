@@ -13,7 +13,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
     uint256 constant RECOVERY_SIGNAL_ID = uint256(keccak256("recover"));
 
     uint256 public nullifierHash;
-    uint256 public owner;
+    address public owner;
     // TODO
     // avoid executing same recovery multiple times
     uint256 public recoveryNonce;
@@ -23,7 +23,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
         address _ccipRouter,
         string memory _appId,
         string memory _actionId,
-        RegistrationPayload memory _registrationPayload,
+        RegistrationPayload memory _registrationPayload
     ) WorldIDVerifier(_worldId, _ccipRouter, _appId, _actionId) {
         owner = _registrationPayload.owner;
         register(_registrationPayload);
@@ -33,7 +33,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
         nullifierHash = _nullifierHash;
     }
 
-    function register(RegistrationPayload memory _registrationPayload) external {
+    function register(RegistrationPayload memory _registrationPayload) public {
         // Construct signal using on-chain data
         RegistrationSignal memory signal = RegistrationSignal({
             signalId: REGISTER_SIGNAL_ID,
@@ -54,7 +54,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
             nullifierHash: _registrationPayload.newNullifierHash,
             proof: _registrationPayload.proof
         });
-        verifyId(verificationPayload);
+        _verifyId(verificationPayload);
 
         // Perform registration
         nullifierHash = _registrationPayload.newNullifierHash;
@@ -67,13 +67,13 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
             chainId: block.chainid,
             wallet: address(this),
             newOwner: _recoveryPayload.newOwner,
-            nonce: recoveryNonce,
+            nonce: recoveryNonce
         });
 
         uint256 _signalHash = calculateSignalHash(signal);
 
         // signal sanity check
-        require(_registrationPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
+        require(_recoveryPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
 
         // perform verification
         // note: uses stored nullifierHash
@@ -83,10 +83,10 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
             nullifierHash: nullifierHash,
             proof: _recoveryPayload.proof
         });
-        verifyId(verificationPayload);
+        _verifyId(verificationPayload);
 
         // perform recovery
-        owner = newOwner;
+        owner = _recoveryPayload.newOwner;
         // increment nonce to protect against replay
         recoveryNonce++;
     }
@@ -107,7 +107,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
             signalId: REGISTER_SIGNAL_ID,
             chainId: block.chainid,
             wallet: address(this),
-            initialOwner: _owner,
+            initialOwner: _owner
         });
         return abi.encode(signal);
     }
@@ -119,7 +119,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
             chainId: block.chainid,
             wallet: address(this),
             newOwner: _newOwner,
-            nonce: recoveryNonce,
+            nonce: recoveryNonce
         });
         return abi.encode(signal);
     }

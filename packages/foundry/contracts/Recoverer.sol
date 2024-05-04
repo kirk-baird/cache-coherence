@@ -77,7 +77,7 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
     }
 
     function _sendIDToVerifier(
-        VerificationPayload calldata _recoveryPayload
+        RecoveryPayload calldata _recoveryPayload
     )
         internal
         returns (bytes32 messageId)
@@ -149,7 +149,8 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
     /// @notice Construct a CCIP message.
     function _buildCCIPMessage(
         address _receiver,
-        VerificationPayload memory _recoveryPayload,
+        // TODO not sure if this should still be RecoveryPayload
+        RecoveryPayload memory _recoveryPayload,
         address _feeTokenAddress
     ) private pure returns (Client.EVM2AnyMessage memory) {
         // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
