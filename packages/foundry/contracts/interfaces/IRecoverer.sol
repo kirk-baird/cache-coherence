@@ -18,6 +18,13 @@ interface IRecoverer {
         uint256 expectedSignalHash;
     }
 
+    struct RecoveryPayload {
+        uint256 merkleRoot;
+        uint256[8] proof;
+        address newOwner;
+        uint256 expectedSignalHash;
+    }
+
   ///////////////////////////////////////////////////////////////////////////////
   ///                                  SIGNALS                                ///
   ///////////////////////////////////////////////////////////////////////////////
@@ -25,8 +32,8 @@ interface IRecoverer {
 
 
     struct RegistrationSignal {
-        uint256 signalId; // keccak256("REGISTRATION_SIGNAL")
-        uint256 chainId; // block.chainid
+        uint256 signalId;
+        uint256 chainId; // block.chainid or maybe sourceChainSelector
         address wallet; // address(this)
         address initialOwner; // user sets this
     }
@@ -36,6 +43,7 @@ interface IRecoverer {
         uint256 chainId;
         address wallet;
         address newOwner;
+        uint256 nonce;
     }
 
 }

@@ -35,7 +35,7 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
         address feeToken, // The token address used to pay CCIP fees for sending the acknowledgment.
         uint256 fees // The fees paid for sending the acknowledgment message via CCIP.
     );
-    
+
     address public constant NATIVE_GAS_TOKEN = address(0);
 
     /// @dev The World ID instance that will be used for verifying proofs
@@ -46,9 +46,6 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
 
     /// @dev The World ID group ID (always 1)
     uint256 internal immutable groupId = 1;
-
-    /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
-    mapping(uint256 => bool) internal nullifierHashes;
 
     /// @param _worldId The WorldID instance that will verify the proofs
     /// @param _appId The World ID app ID
@@ -74,8 +71,6 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
     function _verifyId(
         VerificationPayload memory _verificationPayload
     ) internal {
-        // Nullifier hashes can only be used once
-        if (nullifierHashes[_verificationPayload.nullifierHash]) revert InvalidNullifier();
 
         // Verify that the claimer is verified with WorldID - reverts if invalid
         worldId.verifyProof(
@@ -86,9 +81,6 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
             externalNullifier,
             _verificationPayload.proof
         );
-
-        // Mark nullifierHash as used
-        nullifierHashes[_verificationPayload.nullifierHash] = true;
     }
 
     /// handle a received message
@@ -102,7 +94,7 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
 //         address sender = abi.decode(any2EvmMessage.sender, (address));
 
 //         RecoveryPayload memory recoveryPayload = abi.decode(any2EvmMessage.data, (RecoveryPayload));
-        
+
 //         // Verify WorldID
 //         _verifyId(recoveryPayload);
 
