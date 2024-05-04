@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "@account-abstraction/core/BaseAccount.sol";
 import "@account-abstraction/core/Helpers.sol";
@@ -23,7 +24,7 @@ import "./Recoverer.sol";
   *  has a single signer that can send requests through the entryPoint.
   *  The recoverable extension allows authentication through a WorldCoin ID
   */
-contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, Recoverer {
+contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable, Initializable {
     /**
     * Constants and Immutables
     */
@@ -43,6 +44,16 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
         // TODO: Add world ID, CCIP Router address, dst chain, dst address
         ENTRY_POINT = anEntryPoint;
         owner = anOwner;
+    }
+
+    /**
+     * @dev The _entryPoint member is immutable, to reduce gas consumption.  To upgrade EntryPoint,
+     * a new implementation of SimpleAccount must be deployed with the new EntryPoint address, then upgrading
+      * the implementation by calling `upgradeTo()`
+      * @param anOwner the owner (signer) of this account
+     */
+     function initialize(address anOwner) public virtual initializer {
+        _initialize(anOwner);
     }
 
     /// @inheritdoc BaseAccount
@@ -159,6 +170,11 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
                 revert(add(result, 32), mload(result))
             }
         }
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal view override {
+        (newImplementation);
+        _onlyOwner();
     }
 }
 
