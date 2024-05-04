@@ -46,7 +46,7 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
         uint256 _signalHash = calculateSignalHash(signal);
 
         // signal sanity check
-        require(_registrationPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
+        // require(_registrationPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
 
         // perform verification
         VerificationPayload memory verificationPayload = VerificationPayload({

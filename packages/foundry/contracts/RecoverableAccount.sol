@@ -17,6 +17,8 @@ import "@account-abstraction/samples/callback/TokenCallbackHandler.sol";
 
 import "./Recoverer.sol";
 
+import "./helpers/ByteHasher.sol";
+
 /**
   * RecoverableAccount.
   *  This is recoverable account,
@@ -29,6 +31,12 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     * Constants and Immutables
     */
     IEntryPoint private immutable ENTRY_POINT;
+
+        uint256 constant REGISTER_SIGNAL_ID = uint256(keccak256("registerRecovery"));
+    uint256 constant RECOVERY_SIGNAL_ID = uint256(keccak256("recover"));
+
+    uint256 public nullifierHash;
+    uint256 public recoveryNonce;
 
     /**
     * Events
@@ -119,10 +127,49 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     * Recovery function to begin update of the `owner` address.
     * Authenticates identity via WorldCoin
     */
-    function recoverAccount(RecoveryPayload calldata recoveryPayload) external payable returns (bytes32) {
-        // TODO: Add function parameters
-        // TODO: Call CCIP with world coin authentication
-        return _sendIDToVerifier(recoveryPayload);
+    function recoverAccount(RecoveryPayload calldata _recoveryPayload) external payable returns (bytes32) {
+        // Construct signal using on-chain data
+        RecoverySignal memory signal = RecoverySignal({
+            signalId: RECOVERY_SIGNAL_ID,
+            chainId: block.chainid,
+            wallet: address(this),
+            newOwner: _recoveryPayload.newOwner,
+            nonce: recoveryNonce
+        });
+
+        uint256 _signalHash = ByteHasher.hashToField(abi.encode(signal));
+
+        // signal sanity check
+        // require(_recoveryPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
+
+        // perform verification
+        // note: uses stored nullifierHash
+        VerificationPayload memory verificationPayload = VerificationPayload({
+            signalHash: _signalHash,
+            merkleRoot: _recoveryPayload.merkleRoot,
+            nullifierHash: nullifierHash,
+            proof: _recoveryPayload.proof
+        });
+
+        return _sendIDToVerifier(verificationPayload);
+    }
+
+    function _ccipReceive(
+        Client.Any2EVMMessage memory any2EvmMessage
+    )
+        internal
+        override
+    {   
+        // Reverts if message is invalid or already acknowledged
+        _acknowledgeMessage(any2EvmMessage);
+
+        // Decode newOwner
+        (,address newOwner) = abi.decode(any2EvmMessage.data, (bytes32, address));
+        
+        // Transfer ownership to newOwner
+        _transferOwnership(newOwner);
+
+
     }
 
     /**

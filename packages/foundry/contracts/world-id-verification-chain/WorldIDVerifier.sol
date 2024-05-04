@@ -72,7 +72,6 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
     function _verifyId(
         VerificationPayload memory _verificationPayload
     ) internal {
-
         // Verify that the claimer is verified with WorldID - reverts if invalid
         worldId.verifyProof(
             _verificationPayload.merkleRoot,
@@ -101,15 +100,17 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
         // _verifyId(recoveryPayload);
 
         // Acknowledge valid recovery with callback
-        // _acknowledgeRecovery(
-        //     any2EvmMessage.messageId,
-        //     abi.decode(any2EvmMessage.sender, (address)),
-        //     any2EvmMessage.sourceChainSelector
-        // );
+        _acknowledgeRecovery(
+            any2EvmMessage.messageId,
+            recoveryPayload.newOwner,
+            abi.decode(any2EvmMessage.sender, (address)),
+            any2EvmMessage.sourceChainSelector
+        );
     }
 
     function _acknowledgeRecovery(
         bytes32 _messageIdToAcknowledge,
+        address _newOwner,
         address _messageTrackerAddress,
         uint64 _messageTrackerChainSelector
     ) private {
@@ -120,7 +121,7 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
         // Construct the CCIP message for acknowledgment, including the message ID of the initial message.
         Client.EVM2AnyMessage memory acknowledgment = Client.EVM2AnyMessage({
             receiver: abi.encode(_messageTrackerAddress), // ABI-encoded receiver address
-            data: abi.encode(_messageIdToAcknowledge), // ABI-encoded message ID to acknowledge
+            data: abi.encode(_messageIdToAcknowledge, _newOwner), // ABI-encoded message ID to acknowledge
             tokenAmounts: new Client.EVMTokenAmount[](0), // Empty array as no tokens are transferred
             extraArgs: Client._argsToBytes(
                 // Additional arguments, setting gas limit
