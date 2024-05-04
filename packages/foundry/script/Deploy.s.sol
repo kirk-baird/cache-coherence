@@ -9,6 +9,7 @@ contract DeployScript is ScaffoldETHDeploy {
     error InvalidPrivateKey(string);
 
     function run() external {
+        // Load private key from .env and print address
         uint256 deployerPrivateKey = setupLocalhostEnv();
         if (deployerPrivateKey == 0) {
             revert InvalidPrivateKey(
@@ -16,7 +17,11 @@ contract DeployScript is ScaffoldETHDeploy {
             );
         }
         address owner = vm.addr(deployerPrivateKey);
-        console.logAddress(owner);
+        console.logString(
+            string.concat(
+                "Owner address: ", vm.toString(owner)
+            )
+        );
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -30,7 +35,22 @@ contract DeployScript is ScaffoldETHDeploy {
         RecoverableAccountFactory factory =
             new RecoverableAccountFactory(entryPoint, router, worldIdVerifier, worldIdVerifierChain);
 
+
+        // Create a new RecoverableAccount
+        uint256 salt = 10;
+        RecoverableAccount recoverableAccount = factory.createAccount(owner, salt);
         vm.stopBroadcast();
+
+        console.logString(
+            string.concat(
+                "Factory deployed at: ", vm.toString(address(factory))
+            )
+        );
+        console.logString(
+            string.concat(
+                "RecoverableAccount deployed at: ", vm.toString(address(recoverableAccount))
+            )
+        );
 
         /**
          * This function generates the file containing the contracts Abi definitions.
