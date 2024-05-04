@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { BugAntIcon, MagnifyingGlassIcon, CakeIcon } from "@heroicons/react/24/outline";
 import { Address } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
@@ -57,6 +57,16 @@ const Home: NextPage = () => {
                 Explore your local transactions with the{" "}
                 <Link href="/blockexplorer" passHref className="link">
                   Block Explorer
+                </Link>{" "}
+                tab.
+              </p>
+            </div>
+            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+              <CakeIcon className="h-8 w-8 fill-secondary" />
+              <p>
+                Execute a transaction{" "}
+                <Link href="/executor" passHref className="link">
+                  Executor
                 </Link>{" "}
                 tab.
               </p>

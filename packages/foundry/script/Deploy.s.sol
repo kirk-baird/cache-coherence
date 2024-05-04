@@ -28,15 +28,21 @@ contract DeployScript is ScaffoldETHDeploy {
 
         // Create a new EntryPoint
         IEntryPoint entryPoint = new EntryPoint();
-        // IEntryPoint entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Base Sepolia!
 
-        // TODO: get actual CCIP Router and other addresses
+        // TODO: worldIdVerifier needs to be deployed
         address fakeAddress = address(1);
+        address router = fakeAddress; // local testnet only
+        address worldIdVerifier = fakeAddress; // local testnet only
+        uint64 worldIdVerifierChain = 1; // local testnet only
+
+        // Sepolia Base Addresses
+        if (block.chainid == 0) {
+            entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Alchemy
+            worldIdVerifierChain = 16015286601757825753; // ETH Sepolia chainId
+            router = address(0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93); // Base Sepolia Router
+        }
 
         // Create a RecoverableAccountFactory
-        address router = fakeAddress; // TODO
-        address worldIdVerifier = fakeAddress; // TODO
-        uint64 worldIdVerifierChain = 1; // TODO
         RecoverableAccountFactory factory =
             new RecoverableAccountFactory(entryPoint, router, worldIdVerifier, worldIdVerifierChain);
 
