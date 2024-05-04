@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.23;
 
 import "../contracts/RecoverableAccount.sol";
 import "./DeployHelpers.s.sol";
@@ -19,7 +19,7 @@ contract DeployScript is ScaffoldETHDeploy {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        IEntryPoint entryPoint = IEntryPoint(address(0));
+        IEntryPoint entryPoint = IEntryPoint(address(0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789)); // EntryPoint only works for Base Sepolia!
         RecoverableAccount recoverableAccount =
             new RecoverableAccount(entryPoint, owner);
 
@@ -30,7 +30,7 @@ contract DeployScript is ScaffoldETHDeploy {
          * These definitions are used to derive the types needed in the custom scaffold-eth hooks, for example.
          * This function should be called last.
          */
-        exportDeployments();
+        exportDeployments(recoverableAccount);
     }
 
     function test() public {}
