@@ -28,6 +28,7 @@ contract DeployScript is ScaffoldETHDeploy {
         // TODO: get actual CCIP Router and other addresses
         address fakeAddress = address(1);
 
+        // Create a RecoverableAccountFactory
         address router = fakeAddress; // TODO
         address worldIdVerifier = fakeAddress; // TODO
         uint64 worldIdVerifierChain = 1; // TODO
