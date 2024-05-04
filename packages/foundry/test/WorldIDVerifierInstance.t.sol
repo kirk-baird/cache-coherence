@@ -11,9 +11,11 @@ contract WorldIDVerifierInstanceTest is Test {
     address public alice = makeAddr("alice");
 
     // Ethereum Sepolia
-    IWorldID public worldID = IWorldID(0x469449f251692E0779667583026b5A1E99512157);
+    IWorldID public worldID =
+        IWorldID(0x469449f251692E0779667583026b5A1E99512157);
     address public ccipRouter = 0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59;
-    string private constant APP_ID = "app_staging_8e12a99bd10cac0f5e110ca03d0eaf21";
+    string private constant APP_ID =
+        "app_staging_8e12a99bd10cac0f5e110ca03d0eaf21";
     string private constant ACTION_ID = "test-recovery-action";
 
     uint256[8] proof = [
@@ -27,19 +29,18 @@ contract WorldIDVerifierInstanceTest is Test {
         0x1a2b630d756dd76dcb87e340a722b3c45654fc99550a8c2dab6b55c628e329c8
     ];
 
-    uint256 merkleRoot = 0x1c499e00d910a10771042e167ed6a1b910ee1c3d92dec2e1fc6f32af938675e0;
-    uint256 nullifierHash = 0x15a1ea4b221550e60fa9db357257dda46df5765354bdcdd3ab1f31f23fc7646f;
+    uint256 merkleRoot =
+        0x1c499e00d910a10771042e167ed6a1b910ee1c3d92dec2e1fc6f32af938675e0;
+    uint256 nullifierHash =
+        0x15a1ea4b221550e60fa9db357257dda46df5765354bdcdd3ab1f31f23fc7646f;
 
     IRecoverer.RegistrationPayload registrationPayload;
 
     // uint256 ethSepoliaFork;
 
-
-
     // string immutable ETH_SEPOLIA_S
 
     function setUp() public {
-        
         worldIDVerifier = new WorldIDVerifierInstance(
             worldID,
             ccipRouter, // ccipRouter
@@ -51,7 +52,7 @@ contract WorldIDVerifierInstanceTest is Test {
     function test_register() public {
         // bytes memory registrationSignal = worldIDVerifier.encodeRegistrationSignal(alice);
         uint256 registrationSignalHash = ByteHasher.hashToField("");
-        
+
         registrationPayload = IRecoverer.RegistrationPayload({
             merkleRoot: merkleRoot,
             newNullifierHash: nullifierHash,
@@ -63,4 +64,4 @@ contract WorldIDVerifierInstanceTest is Test {
 
         assertGt(worldIDVerifier.nullifierHash(), 0, "Nullifier hash not set");
     }
-} 
+}

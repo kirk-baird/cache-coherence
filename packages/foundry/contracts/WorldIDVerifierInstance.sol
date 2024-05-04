@@ -6,6 +6,8 @@ import "./interfaces/IRecoverer.sol";
 import "./helpers/ByteHasher.sol";
 
 // Dummy World ID register/recover on the same chain
+// Used to try World ID operations in isolation rather than in a properly
+// functional contract wallet
 contract WorldIDVerifierInstance is WorldIDVerifier {
     using ByteHasher for bytes;
 
@@ -74,7 +76,10 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
         uint256 _signalHash = calculateSignalHash(signal);
 
         // signal sanity check
-        require(_recoveryPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
+        require(
+            _recoveryPayload.expectedSignalHash == _signalHash,
+            "register: Unexpected signal hash"
+        );
 
         // perform verification
         // note: uses stored nullifierHash
@@ -93,17 +98,29 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
     }
 
     // TODO make internal
-    function calculateSignalHash(RegistrationSignal memory _registrationSignal) public pure returns (uint256) {
+    function calculateSignalHash(RegistrationSignal memory _registrationSignal)
+        public
+        pure
+        returns (uint256)
+    {
         return abi.encode(_registrationSignal).hashToField();
     }
 
     // TODO make internal
-    function calculateSignalHash(RecoverySignal memory _recoverySignal) public pure returns (uint256) {
+    function calculateSignalHash(RecoverySignal memory _recoverySignal)
+        public
+        pure
+        returns (uint256)
+    {
         return abi.encode(_recoverySignal).hashToField();
     }
 
     // Helper, dummy to help get info for off-chain proof generation
-    function encodeRegistrationSignal(address _owner) public view returns (bytes memory) {
+    function encodeRegistrationSignal(address _owner)
+        public
+        view
+        returns (bytes memory)
+    {
         RegistrationSignal memory signal = RegistrationSignal({
             signalId: REGISTER_SIGNAL_ID,
             chainId: block.chainid,
@@ -114,7 +131,11 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
     }
 
     // Helper, dummy to help get info for off-chain proof generation
-    function encodeRecoverySignal(address _newOwner) public view returns (bytes memory) {
+    function encodeRecoverySignal(address _newOwner)
+        public
+        view
+        returns (bytes memory)
+    {
         RecoverySignal memory signal = RecoverySignal({
             signalId: RECOVERY_SIGNAL_ID,
             chainId: block.chainid,

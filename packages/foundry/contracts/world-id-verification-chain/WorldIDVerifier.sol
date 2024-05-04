@@ -4,10 +4,12 @@ pragma solidity ^0.8.23;
 import {ByteHasher} from "../helpers/ByteHasher.sol";
 import {IWorldID} from "../interfaces/IWorldID.sol";
 import {IRecoverer} from "../interfaces/IRecoverer.sol";
-import {IRouterClient} from "@chainlink/ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
+import {IRouterClient} from
+    "@chainlink/ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 
 import {Client} from "@chainlink/ccip/src/v0.8/ccip/libraries/Client.sol";
-import {CCIPReceiver} from "@chainlink/ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
+import {CCIPReceiver} from
+    "@chainlink/ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 
 contract WorldIDVerifier is IRecoverer, CCIPReceiver {
     using ByteHasher for bytes;
@@ -27,13 +29,18 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
     // This event signifies that the Acknowledger contract has recognized the receipt of an initial message
     // and has informed the original sender contract by sending an acknowledgment message,
     // including the original message ID.
-    event AcknowledgmentSent(
-        bytes32 indexed messageId, // The unique ID of the CCIP message.
-        uint64 indexed destinationChainSelector, // The chain selector of the destination chain.
-        address indexed receiver, // The address of the receiver on the destination chain.
-        bytes32 data, // The data being sent back, containing the message ID of the initial message to acknowledge.
-        address feeToken, // The token address used to pay CCIP fees for sending the acknowledgment.
-        uint256 fees // The fees paid for sending the acknowledgment message via CCIP.
+    // The chain selector of the destination chain.
+    // The address of the receiver on the destination chain.
+    // The data being sent back, containing the message ID of the initial message to acknowledge.
+    // The token address used to pay CCIP fees for sending the acknowledgment.
+    // The fees paid for sending the acknowledgment message via CCIP.
+    event AcknowledgmentSent( // The unique ID of the CCIP message.
+        bytes32 indexed messageId,
+        uint64 indexed destinationChainSelector,
+        address indexed receiver,
+        bytes32 data,
+        address feeToken,
+        uint256 fees
     );
 
     event PayloadReceived(uint256 indexed signalHash);
@@ -59,20 +66,23 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
         string memory _actionId
     ) CCIPReceiver(_ccipRouter) {
         worldId = _worldId;
-        externalNullifier = abi
-            .encodePacked(abi.encodePacked(_appId).hashToField(), _actionId)
-            .hashToField();
+        externalNullifier = abi.encodePacked(
+            abi.encodePacked(_appId).hashToField(), _actionId
+        ).hashToField();
     }
 
-    function verifyId(VerificationPayload memory _verificationPayload) external returns (bool) {
+    function verifyId(VerificationPayload memory _verificationPayload)
+        external
+        returns (bool)
+    {
         _verifyId(_verificationPayload);
 
         return true;
     }
 
-    function _verifyId(
-        VerificationPayload memory _verificationPayload
-    ) internal {
+    function _verifyId(VerificationPayload memory _verificationPayload)
+        internal
+    {
         // Verify that the claimer is verified with WorldID - reverts if invalid
         worldId.verifyProof(
             _verificationPayload.merkleRoot,
@@ -85,41 +95,65 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
     }
 
     /// handle a received message
-    function _ccipReceive(
-        Client.Any2EVMMessage memory any2EvmMessage
-    )
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage)
         internal
         override
     {
         // Only accept messages from RecoverableAccounts
         // address sender = abi.decode(any2EvmMessage.sender, (address));
 
-        VerificationPayload memory verificationPayload = abi.decode(any2EvmMessage.data, (VerificationPayload));
+        VerificationPayload memory verificationPayload =
+            abi.decode(any2EvmMessage.data, (VerificationPayload));
         emit PayloadReceived(verificationPayload.signalHash);
+
+        bool verifySuccess;
+
         // Verify WorldID
-        // _verifyId(recoveryPayload);
+        // commented out due to apparent issue with sepolia Semaphore deployment
+        // causing `EvmError: revert` in the SemaphoreVerifier
+        // try worldId.verifyProof(
+        //     verificationPayload.merkleRoot,
+        //     groupId,
+        //     verificationPayload.signalHash,
+        //     verificationPayload.nullifierHash,
+        //     externalNullifier,
+        //     verificationPayload.proof
+        // ) {
+        //     verifySuccess = true;
+        // } catch {
+        //     // NOTE: hard to catch a reliable error here
+        //     // Blanket catch for now because the errors can change based on the
+        //     // underlying WorldIDIdentityManagerImpl
+        //     // Could be `error ProofValidationFailure();` but other stuff too
+        //     verifySuccess = false;
+        // }
+
+        // Note dummy, always successful
+        verifySuccess = true;
 
         // Acknowledge valid recovery with callback
-        _acknowledgeRecovery(
+        _acknowledgeVerification(
             any2EvmMessage.messageId,
             abi.decode(any2EvmMessage.sender, (address)),
-            any2EvmMessage.sourceChainSelector
+            any2EvmMessage.sourceChainSelector,
+            verifySuccess
         );
     }
 
-    function _acknowledgeRecovery(
+    function _acknowledgeVerification(
         bytes32 _messageIdToAcknowledge,
         address _messageTrackerAddress,
-        uint64 _messageTrackerChainSelector
+        uint64 _messageTrackerChainSelector,
+        bool verificationResult
     ) private {
-
-        if (_messageTrackerAddress == address(0))
+        if (_messageTrackerAddress == address(0)) {
             revert InvalidReceiverAddress();
+        }
 
         // Construct the CCIP message for acknowledgment, including the message ID of the initial message.
         Client.EVM2AnyMessage memory acknowledgment = Client.EVM2AnyMessage({
             receiver: abi.encode(_messageTrackerAddress), // ABI-encoded receiver address
-            data: abi.encode(_messageIdToAcknowledge), // ABI-encoded message ID to acknowledge
+            data: abi.encode(_messageIdToAcknowledge, verificationResult), // ABI-encoded message ID to acknowledge
             tokenAmounts: new Client.EVMTokenAmount[](0), // Empty array as no tokens are transferred
             extraArgs: Client._argsToBytes(
                 // Additional arguments, setting gas limit

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 interface IRecoverer {
-
     struct VerificationPayload {
         uint256 signalHash;
         uint256 merkleRoot;
@@ -24,11 +23,9 @@ interface IRecoverer {
         uint256 expectedSignalHash;
     }
 
-  ///////////////////////////////////////////////////////////////////////////////
-  ///                                  SIGNALS                                ///
-  ///////////////////////////////////////////////////////////////////////////////
-
-
+    ///////////////////////////////////////////////////////////////////////////////
+    ///                                  SIGNALS                                ///
+    ///////////////////////////////////////////////////////////////////////////////
 
     struct RegistrationSignal {
         uint256 signalId;
@@ -44,5 +41,4 @@ interface IRecoverer {
         address newOwner;
         uint256 nonce;
     }
-
 }

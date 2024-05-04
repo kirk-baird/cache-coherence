@@ -20,16 +20,22 @@ import "./Recoverer.sol";
 import "./helpers/ByteHasher.sol";
 
 /**
-  * RecoverableAccount.
-  *  This is recoverable account,
-  *  has execute, eth handling methods
-  *  has a single signer that can send requests through the entryPoint.
-  *  The recoverable extension allows authentication through a WorldCoin ID
-  */
-contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable {
+ * RecoverableAccount.
+ *  This is recoverable account,
+ *  has execute, eth handling methods
+ *  has a single signer that can send requests through the entryPoint.
+ *  The recoverable extension allows authentication through a WorldCoin ID
+ */
+contract RecoverableAccount is
+    Ownable2StepUpgradeable,
+    BaseAccount,
+    TokenCallbackHandler,
+    Recoverer,
+    UUPSUpgradeable
+{
     /**
-    * Constants and Immutables
-    */
+     * Constants and Immutables
+     */
     IEntryPoint private immutable ENTRY_POINT;
 
     uint256 constant REGISTER_SIGNAL_ID = uint256(keccak256("registerRecovery"));
@@ -40,17 +46,30 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     uint256 public recoveryNonce;
 
     /**
-    * Events
-    */
+     * Events
+     */
+    event SetNullifierHash(
+        uint256 indexed oldNullifierHash, uint256 indexed newNullifierHash
+    );
+    event RegisterNullifierFailure(
+        bytes32 indexed messageId, uint256 indexed attemptedNullifierHash
+    );
     event AccountRecovered(address indexed oldOwner, address indexed newOwner);
-    event SetNullifierHash(uint256 oldNullifierHash, uint256 newNullifierHash);
+    event AccountRecoverFailure(
+        bytes32 indexed messageId, address indexed attemptedOwner
+    );
 
     /*
     * Public and External Functions
     */
 
     // Create a RecoverableAccount
-    constructor(IEntryPoint anEntryPoint, address _router, address _worldIdVerifier, uint64 _worldIdVerifierChain) Recoverer(_router, _worldIdVerifier, _worldIdVerifierChain) {
+    constructor(
+        IEntryPoint anEntryPoint,
+        address _router,
+        address _worldIdVerifier,
+        uint64 _worldIdVerifierChain
+    ) Recoverer(_router, _worldIdVerifier, _worldIdVerifierChain) {
         ENTRY_POINT = anEntryPoint;
         _disableInitializers();
     }
@@ -58,10 +77,10 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     /**
      * @dev The _entryPoint member is immutable, to reduce gas consumption.  To upgrade EntryPoint,
      * a new implementation of SimpleAccount must be deployed with the new EntryPoint address, then upgrading
-      * the implementation by calling `upgradeTo()`
-      * @param anOwner the owner (signer) of this account
+     * the implementation by calling `upgradeTo()`
+     * @param anOwner the owner (signer) of this account
      */
-     function initialize(address anOwner) public virtual initializer {
+    function initialize(address anOwner) public virtual initializer {
         _initialize(anOwner);
     }
 
@@ -76,7 +95,11 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
      * @param value the value to pass in this call
      * @param func the calldata to pass in this call
      */
-    function execute(address dest, uint256 value, bytes calldata func) external {
+    function execute(
+        address dest,
+        uint256 value,
+        bytes calldata func
+    ) external {
         _requireFromEntryPointOrOwner();
         _call(dest, value, func);
     }
@@ -88,9 +111,17 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
      * @param value an array of values to pass to each call. can be zero-length for no-value calls
      * @param func an array of calldata to pass to each call
      */
-    function executeBatch(address[] calldata dest, uint256[] calldata value, bytes[] calldata func) external {
+    function executeBatch(
+        address[] calldata dest,
+        uint256[] calldata value,
+        bytes[] calldata func
+    ) external {
         _requireFromEntryPointOrOwner();
-        require(dest.length == func.length && (value.length == 0 || value.length == func.length), "wrong array lengths");
+        require(
+            dest.length == func.length
+                && (value.length == 0 || value.length == func.length),
+            "wrong array lengths"
+        );
         if (value.length == 0) {
             for (uint256 i = 0; i < dest.length; i++) {
                 _call(dest[i], 0, func[i]);
@@ -105,7 +136,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     /**
      * check current account deposit in the entryPoint
      */
-     function getDeposit() public view returns (uint256) {
+    function getDeposit() public view returns (uint256) {
         return entryPoint().balanceOf(address(this));
     }
 
@@ -121,14 +152,21 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
      * @param withdrawAddress target to send to
      * @param amount to withdraw
      */
-    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) public onlyOwner {
+    function withdrawDepositTo(
+        address payable withdrawAddress,
+        uint256 amount
+    ) public onlyOwner {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
     // TODO onlyowner or only once, protect
     // Have register as a separate step after constructor (for now)
     // to save having to pre-calculate the wallet address when making the signal offchain
-    function registerWorldId(RegistrationPayload memory _registrationPayload) public payable onlyOwner returns (bytes32) {
+    function registerWorldId(RegistrationPayload memory _registrationPayload)
+        public
+        onlyOwner
+        returns (bytes32)
+    {
         // Construct signal using on-chain data
         RegistrationSignal memory signal = RegistrationSignal({
             signalId: REGISTER_SIGNAL_ID,
@@ -151,16 +189,23 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
         });
 
         // ABI-encode execution data
-        bytes memory executionData = abi.encode(_registrationPayload.newNullifierHash);
+        bytes memory executionData =
+            abi.encode(_registrationPayload.newNullifierHash);
 
-        return _sendIDToVerifier(verificationPayload, MessageType.Registration, executionData);
+        return _sendIDToVerifier(
+            verificationPayload, MessageType.Registration, executionData
+        );
     }
 
     /**
-    * Recovery function to begin update of the `owner` address.
-    * Authenticates identity via WorldCoin
-    */
-    function recoverAccount(RecoveryPayload calldata _recoveryPayload) external payable returns (bytes32) {
+     * Recovery function to begin update of the `owner` address.
+     * Authenticates identity via WorldCoin
+     */
+    function recoverAccount(RecoveryPayload calldata _recoveryPayload)
+        external
+        payable
+        returns (bytes32)
+    {
         // Comment out to allow testing without successful registration
         // require(nullifierHash != uint256(0), "NullifierHash unset");
 
@@ -190,44 +235,50 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
         // ABI-encode execution data
         bytes memory executionData = abi.encode(_recoveryPayload.newOwner);
 
-        bytes32 messageId = _sendIDToVerifier(verificationPayload, MessageType.Recovery, executionData);
+        bytes32 messageId = _sendIDToVerifier(
+            verificationPayload, MessageType.Recovery, executionData
+        );
 
         return messageId;
     }
 
-    function _ccipReceive(
-        Client.Any2EVMMessage memory any2EvmMessage
-    )
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage)
         internal
         override
     {
         // Reverts if message is invalid or already acknowledged
         _acknowledgeMessage(any2EvmMessage);
 
-        // Decode initialMsgId
-        bytes32 initialMsgId = abi.decode(any2EvmMessage.data, (bytes32));
+        // Decode initialMsgId, verification result
+        (bytes32 initialMsgId, bool verificationResult) =
+            abi.decode(any2EvmMessage.data, (bytes32, bool));
 
         // Get message type from messageId
         MessageType msgType = messagesInfo[initialMsgId].messageType;
 
         if (msgType == MessageType.Registration) {
-            _executeRegistration(initialMsgId);
+            _executeRegistration(initialMsgId, verificationResult);
         } else if (msgType == MessageType.Recovery) {
-            _executeRecovery(initialMsgId);
+            _executeRecovery(initialMsgId, verificationResult);
         } else {
             revert("_ccipReceive: Invalid MessageType");
         }
     }
 
-    function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, TokenCallbackHandler) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        pure
+        override(CCIPReceiver, TokenCallbackHandler)
+        returns (bool)
+    {
         // TODO: I don't think this is correct
-        return CCIPReceiver.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+        return CCIPReceiver.supportsInterface(interfaceId)
+            || super.supportsInterface(interfaceId);
     }
 
     /*
     * Internal and Private functions
     */
-
 
     // Overrides OZ's Ownable.sol to support calls to itself
     function _checkOwner() internal view override {
@@ -238,15 +289,21 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
 
     // Require the function call went through EntryPoint or owner
     function _requireFromEntryPointOrOwner() internal view {
-        require(msg.sender == address(entryPoint()) || msg.sender == owner(), "account: not Owner or EntryPoint");
+        require(
+            msg.sender == address(entryPoint()) || msg.sender == owner(),
+            "account: not Owner or EntryPoint"
+        );
     }
 
     /// implement template method of BaseAccount
-    function _validateSignature(PackedUserOperation calldata userOp, bytes32 userOpHash)
-    internal override virtual returns (uint256 validationData) {
+    function _validateSignature(
+        PackedUserOperation calldata userOp,
+        bytes32 userOpHash
+    ) internal virtual override returns (uint256 validationData) {
         bytes32 hash = MessageHashUtils.toEthSignedMessageHash(userOpHash);
-        if (owner() != ECDSA.recover(hash, userOp.signature))
+        if (owner() != ECDSA.recover(hash, userOp.signature)) {
             return SIG_VALIDATION_FAILED;
+        }
         return SIG_VALIDATION_SUCCESS;
     }
 
@@ -259,7 +316,11 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
         }
     }
 
-    function _authorizeUpgrade(address newImplementation) internal view override {
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        view
+        override
+    {
         (newImplementation);
         // TODO: Verification
         require(msg.sender == owner());
@@ -269,24 +330,41 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
         __Ownable_init(anOwner);
     }
 
-    function _executeRegistration(bytes32 _messageId) private {
-        bytes memory abiEncodedExecutionData = messagesInfo[_messageId].executionData;
-        uint256 newNullifierHash = abi.decode(abiEncodedExecutionData, (uint256));
-        uint256 oldNullifierHash = nullifierHash;
-        nullifierHash = newNullifierHash;
+    function _executeRegistration(
+        bytes32 _messageId,
+        bool verificationResult
+    ) private {
+        bytes memory abiEncodedExecutionData =
+            messagesInfo[_messageId].executionData;
+        uint256 newNullifierHash =
+            abi.decode(abiEncodedExecutionData, (uint256));
 
-        emit SetNullifierHash(oldNullifierHash, newNullifierHash);
+        if (verificationResult) {
+            uint256 oldNullifierHash = nullifierHash;
+            nullifierHash = newNullifierHash;
+
+            emit SetNullifierHash(oldNullifierHash, newNullifierHash);
+        } else {
+            emit RegisterNullifierFailure(_messageId, newNullifierHash);
+        }
     }
 
-    function _executeRecovery(bytes32 _messageId) private {
-        bytes memory abiEncodedExecutionData = messagesInfo[_messageId].executionData;
+    function _executeRecovery(
+        bytes32 _messageId,
+        bool verificationResult
+    ) private {
+        bytes memory abiEncodedExecutionData =
+            messagesInfo[_messageId].executionData;
         address newOwner = abi.decode(abiEncodedExecutionData, (address));
-
-        // Transfer ownership to new owner
-        // Ok thanks to _checkOwner override
-        this.transferOwnership(newOwner);
+        if (verificationResult) {
+            emit AccountRecovered(owner(), newOwner);
+            // Transfer ownership to new owner
+            // Ok thanks to _checkOwner override
+            // NOTE: ownership still needs to be accepted due to 2 step
+            this.transferOwnership(newOwner);
+        } else {
+            emit AccountRecoverFailure(_messageId, newOwner);
+            // do not initiate transfer
+        }
     }
-
-
 }
-
