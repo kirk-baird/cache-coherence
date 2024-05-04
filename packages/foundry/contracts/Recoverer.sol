@@ -48,6 +48,8 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
     uint64 immutable WORLD_ID_VERIFIER_CHAIN;
     address immutable WORLD_ID_VERIFIER;
 
+    bytes32 public nullifierHash;
+
     // Mapping to keep track of allowlisted destination chains.
     mapping(uint64 => bool) public allowlistedDestinationChains;
 

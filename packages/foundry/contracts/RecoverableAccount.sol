@@ -119,11 +119,15 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     * Recovery function to begin update of the `owner` address.
     * Authenticates identity via WorldCoin
     */
-    function recoverAccount(address newOwner, RecoveryPayload calldata recoveryPayload) external {
+    function recoverAccount(RecoveryPayload calldata recoveryPayload) external payable {
         // TODO: Add function parameters
         // TODO: Call CCIP with world coin authentication
+<<<<<<< HEAD
 
         transferOwnership(newOwner);
+=======
+        _sendIDToVerifier(recoveryPayload);
+>>>>>>> 245c701 (add WorldIDVerifierInstance.sol)
     }
 
     /**
@@ -135,7 +139,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
         // TODO: Update owner address to new address
 
         // TODO: Emit event details
-        // emit AccountRecovered(oldOwner, newOwner);
+        transferOwnership(newOwner);
     }
 
     function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, TokenCallbackHandler) returns (bool) {
