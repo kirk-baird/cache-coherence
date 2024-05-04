@@ -22,24 +22,25 @@ contract WorldIDVerifierInstance is WorldIDVerifier {
         IWorldID _worldId,
         address _ccipRouter,
         string memory _appId,
-        string memory _actionId,
-        RegistrationPayload memory _registrationPayload
+        string memory _actionId
     ) WorldIDVerifier(_worldId, _ccipRouter, _appId, _actionId) {
-        owner = _registrationPayload.owner;
-        register(_registrationPayload);
+        owner = msg.sender;
     }
 
     function _setNullifierHash(uint256 _nullifierHash) private {
         nullifierHash = _nullifierHash;
     }
 
+    // TODO onlyowner or only once, protect
+    // Have register as a separate step after constructor (for now)
+    // to save having to pre-calculate the wallet address when making the signal offchain
     function register(RegistrationPayload memory _registrationPayload) public {
         // Construct signal using on-chain data
         RegistrationSignal memory signal = RegistrationSignal({
             signalId: REGISTER_SIGNAL_ID,
             chainId: block.chainid,
             wallet: address(this),
-            initialOwner: _registrationPayload.owner
+            initialOwner: owner
         });
 
         uint256 _signalHash = calculateSignalHash(signal);
