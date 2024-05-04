@@ -32,7 +32,7 @@ contract ScaffoldETHDeploy is Script {
         }
     }
 
-    function exportDeployments() internal {
+    function exportDeployments(address[] memory addrs, string[] memory names) internal {
         // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -46,6 +46,12 @@ contract ScaffoldETHDeploy is Script {
         for (uint256 i = 0; i < len; i++) {
             vm.serializeString(
                 jsonWrite, vm.toString(deployments[i].addr), deployments[i].name
+            );
+        }
+
+        for (uint256 i = 0; i < addrs.length; i++) {
+            vm.serializeString(
+                jsonWrite, vm.toString(addrs[i]), names[i]
             );
         }
 
