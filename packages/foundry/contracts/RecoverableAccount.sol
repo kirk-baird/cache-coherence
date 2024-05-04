@@ -52,6 +52,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     // Create a RecoverableAccount
     constructor(IEntryPoint anEntryPoint, address _router, address _worldIdVerifier, uint64 _worldIdVerifierChain) Recoverer(_router, _worldIdVerifier, _worldIdVerifierChain) {
         ENTRY_POINT = anEntryPoint;
+        _disableInitializers();
     }
 
     /**

@@ -9,7 +9,7 @@ import {SafeERC20} from "@chainlink/ccip/src/v0.8/vendor/openzeppelin-solidity/v
 
 import {IRecoverer} from "./interfaces/IRecoverer.sol";
 
-/// @title - A simple messenger contract for sending/receving string data across chains.
+/// @title Abstract contract that RecoverableAccount inherits for CCIP functionality
 abstract contract Recoverer is IRecoverer, CCIPReceiver {
     using SafeERC20 for IERC20;
 
