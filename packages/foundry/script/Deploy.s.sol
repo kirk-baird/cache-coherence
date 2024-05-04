@@ -29,9 +29,9 @@ contract DeployScript is ScaffoldETHDeploy {
         // Sepolia Base Addresses
         // if (block.chainid == 0) {
         IEntryPoint entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Alchemy
-        uint64 worldIdVerifierChain = 16015286601757825753; // ETH Sepolia chainId
+        uint64 worldIdVerifierChain = 16015286601757825753; // ETH Sepolia chainId from CCIP
         address router = address(0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93); // Base Sepolia Router
-        address worldIdVerifier = address(0x578C5BA054183340da4842C392B5cF8D158F0D9a);
+        address worldIdVerifier = address(0x98D85df420E932038F0E72d91d5231c092e9c793); // ETH Sepolid `WorldIDVerifier.sol`
         // }
 
         // Create a RecoverableAccountFactory
@@ -42,14 +42,6 @@ contract DeployScript is ScaffoldETHDeploy {
         // Create a new RecoverableAccount
         RecoverableAccount recoverableAccount = new RecoverableAccount(entryPoint, router, worldIdVerifier, worldIdVerifierChain);
 
-        // uint256[8] memory proof;
-        // IRecoverer.RecoveryPayload memory recoveryPayload = IRecoverer.RecoveryPayload({
-        //     merkleRoot: 1,
-        //     proof: proof,
-        //     newOwner: owner,
-        //     expectedSignalHash: 1
-        // });
-        // bytes32 messageId = recoverableAccount.recoverAccount{value: 19609570891446417} (recoveryPayload);
         vm.stopBroadcast();
 
 
@@ -63,11 +55,38 @@ contract DeployScript is ScaffoldETHDeploy {
                 "RecoverableAccount deployed at: ", vm.toString(address(recoverableAccount))
             )
         );
+
+        // Register during
+        // recoverableAccount.initialize(owner); // This makes debugging on the front end challenging
+        // uint256[8] memory proof;
+        // IRecoverer.RegistrationPayload memory registrationPayload = IRecoverer.RegistrationPayload({
+        //     merkleRoot: 1000,
+        //     proof: proof,
+        //     newNullifierHash: 9876,
+        //     expectedSignalHash: 999
+        // });
+        // bytes32 messageId = recoverableAccount.registerWorldId{value: 1e16}(registrationPayload);
         // console.logString(
         //     string.concat(
-        //         "CCIP Message: ", vm.toString(messageId)
+        //         "CCIP Message Registation: ", vm.toString(messageId)
         //     )
         // );
+
+
+        // Test transaction during deployment to save time
+        uint256[8] memory proof;
+        IRecoverer.RecoveryPayload memory recoveryPayload = IRecoverer.RecoveryPayload({
+            merkleRoot: 1,
+            proof: proof,
+            newOwner: owner,
+            expectedSignalHash: 1
+        });
+        bytes32 messageId = recoverableAccount.recoverAccount{value: 19609570891446417} (recoveryPayload);
+        console.logString(
+            string.concat(
+                "CCIP Message Recovery: ", vm.toString(messageId)
+            )
+        );
 
 
         /**
