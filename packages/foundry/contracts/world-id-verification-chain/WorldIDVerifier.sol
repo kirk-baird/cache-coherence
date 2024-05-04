@@ -35,6 +35,7 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
         address feeToken, // The token address used to pay CCIP fees for sending the acknowledgment.
         uint256 fees // The fees paid for sending the acknowledgment message via CCIP.
     );
+    event PayloadReceived(address indexed newOwner);
 
     address public constant NATIVE_GAS_TOKEN = address(0);
 
@@ -90,73 +91,74 @@ contract WorldIDVerifier is IRecoverer, CCIPReceiver {
         internal
         override
     {
-//         // Only accept messages from RecoverableAccounts
-//         address sender = abi.decode(any2EvmMessage.sender, (address));
+        // Only accept messages from RecoverableAccounts
+        // address sender = abi.decode(any2EvmMessage.sender, (address));
 
-//         RecoveryPayload memory recoveryPayload = abi.decode(any2EvmMessage.data, (RecoveryPayload));
+        RecoveryPayload memory recoveryPayload = abi.decode(any2EvmMessage.data, (RecoveryPayload));
+        emit PayloadReceived(recoveryPayload.newOwner);
 
-//         // Verify WorldID
-//         _verifyId(recoveryPayload);
+        // Verify WorldID
+        // _verifyId(recoveryPayload);
 
-//         // Acknowledge valid recovery with callback
-//         _acknowledgeRecovery(
-//             any2EvmMessage.messageId,
-//             abi.decode(any2EvmMessage.sender, (address)),
-//             any2EvmMessage.sourceChainSelector
-//         );
-//     }
+        // Acknowledge valid recovery with callback
+        // _acknowledgeRecovery(
+        //     any2EvmMessage.messageId,
+        //     abi.decode(any2EvmMessage.sender, (address)),
+        //     any2EvmMessage.sourceChainSelector
+        // );
+    }
 
-//     function _acknowledgeRecovery(
-//         bytes32 _messageIdToAcknowledge,
-//         address _messageTrackerAddress,
-//         uint64 _messageTrackerChainSelector
-//     ) private {
+    function _acknowledgeRecovery(
+        bytes32 _messageIdToAcknowledge,
+        address _messageTrackerAddress,
+        uint64 _messageTrackerChainSelector
+    ) private {
 
-//         if (_messageTrackerAddress == address(0))
-//             revert InvalidReceiverAddress();
+        if (_messageTrackerAddress == address(0))
+            revert InvalidReceiverAddress();
 
-//         // Construct the CCIP message for acknowledgment, including the message ID of the initial message.
-//         Client.EVM2AnyMessage memory acknowledgment = Client.EVM2AnyMessage({
-//             receiver: abi.encode(_messageTrackerAddress), // ABI-encoded receiver address
-//             data: abi.encode(_messageIdToAcknowledge), // ABI-encoded message ID to acknowledge
-//             tokenAmounts: new Client.EVMTokenAmount[](0), // Empty array as no tokens are transferred
-//             extraArgs: Client._argsToBytes(
-//                 // Additional arguments, setting gas limit
-//                 Client.EVMExtraArgsV1({gasLimit: 200_000})
-//             ),
-//             // Set the feeToken to a feeTokenAddress, indicating specific asset will be used for fees
-//             feeToken: NATIVE_GAS_TOKEN
-//         });
+        // Construct the CCIP message for acknowledgment, including the message ID of the initial message.
+        Client.EVM2AnyMessage memory acknowledgment = Client.EVM2AnyMessage({
+            receiver: abi.encode(_messageTrackerAddress), // ABI-encoded receiver address
+            data: abi.encode(_messageIdToAcknowledge), // ABI-encoded message ID to acknowledge
+            tokenAmounts: new Client.EVMTokenAmount[](0), // Empty array as no tokens are transferred
+            extraArgs: Client._argsToBytes(
+                // Additional arguments, setting gas limit
+                Client.EVMExtraArgsV1({gasLimit: 200_000})
+            ),
+            // Set the feeToken to a feeTokenAddress, indicating specific asset will be used for fees
+            feeToken: NATIVE_GAS_TOKEN
+        });
 
-//         // Initialize a router client instance to interact with the cross-chain router.
-//         IRouterClient router = IRouterClient(this.getRouter());
+        // Initialize a router client instance to interact with the cross-chain router.
+        IRouterClient router = IRouterClient(this.getRouter());
 
-//         // Calculate the fee required to send the CCIP acknowledgment message.
-//         uint256 fees = router.getFee(
-//             _messageTrackerChainSelector, // The chain selector for routing the message.
-//             acknowledgment // The acknowledgment message data.
-//         );
+        // Calculate the fee required to send the CCIP acknowledgment message.
+        uint256 fees = router.getFee(
+            _messageTrackerChainSelector, // The chain selector for routing the message.
+            acknowledgment // The acknowledgment message data.
+        );
 
-//         // Ensure the contract has sufficient balance to cover the message sending fees.
-//         if (fees > address(this).balance) {
-//             revert NotEnoughBalance(address(this).balance, fees);
-//         }
+        // Ensure the contract has sufficient balance to cover the message sending fees.
+        if (fees > address(this).balance) {
+            revert NotEnoughBalance(address(this).balance, fees);
+        }
 
-//         // Send the acknowledgment message via the CCIP router and capture the resulting message ID.
-//         bytes32 messageId = router.ccipSend(
-//             _messageTrackerChainSelector, // The destination chain selector.
-//             acknowledgment // The CCIP message payload for acknowledgment.
-//         );
+        // Send the acknowledgment message via the CCIP router and capture the resulting message ID.
+        bytes32 messageId = router.ccipSend(
+            _messageTrackerChainSelector, // The destination chain selector.
+            acknowledgment // The CCIP message payload for acknowledgment.
+        );
 
-//         // Emit an event detailing the acknowledgment message sending, for external tracking and verification.
-//         emit AcknowledgmentSent(
-//             messageId, // The ID of the sent acknowledgment message.
-//             _messageTrackerChainSelector, // The destination chain selector.
-//             _messageTrackerAddress, // The receiver of the acknowledgment, typically the original sender.
-//             _messageIdToAcknowledge, // The original message ID that was acknowledged.
-//             NATIVE_GAS_TOKEN, // The fee token used.
-//             fees // The fees paid for sending the message.
-//         );
+        // Emit an event detailing the acknowledgment message sending, for external tracking and verification.
+        emit AcknowledgmentSent(
+            messageId, // The ID of the sent acknowledgment message.
+            _messageTrackerChainSelector, // The destination chain selector.
+            _messageTrackerAddress, // The receiver of the acknowledgment, typically the original sender.
+            _messageIdToAcknowledge, // The original message ID that was acknowledged.
+            NATIVE_GAS_TOKEN, // The fee token used.
+            fees // The fees paid for sending the message.
+        );
     }
 
     receive() external payable {}
