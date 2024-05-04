@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-import "@openzeppelin-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
+import "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 import "@account-abstraction/core/BaseAccount.sol";
 import "@account-abstraction/core/Helpers.sol";
@@ -26,7 +26,7 @@ import "./helpers/ByteHasher.sol";
   *  has a single signer that can send requests through the entryPoint.
   *  The recoverable extension allows authentication through a WorldCoin ID
   */
-contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable {
+contract RecoverableAccount is OwnableUpgradeable, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable {
     /**
     * Constants and Immutables
     */
@@ -36,6 +36,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     uint256 constant RECOVERY_SIGNAL_ID = uint256(keccak256("recover"));
 
     uint256 public nullifierHash;
+    // avoid executing same recovery multiple times
     uint256 public recoveryNonce;
 
     /**
@@ -49,7 +50,6 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
 
     // Create a RecoverableAccount
     constructor(IEntryPoint anEntryPoint, address _router, address _worldIdVerifier, uint64 _worldIdVerifierChain) Recoverer(_router, _worldIdVerifier, _worldIdVerifierChain) {
-        // TODO: Add world ID, CCIP Router address, dst chain, dst address
         ENTRY_POINT = anEntryPoint;
     }
 
@@ -159,13 +159,15 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     )
         internal
         override
-    {   
+    {
         // Reverts if message is invalid or already acknowledged
         _acknowledgeMessage(any2EvmMessage);
 
+        // TODO check which type of message it is
+
         // Decode newOwner
         (,address newOwner) = abi.decode(any2EvmMessage.data, (bytes32, address));
-        
+
         // Transfer ownership to newOwner
         _transferOwnership(newOwner);
 
@@ -231,7 +233,7 @@ contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallba
     }
 
     function _initialize(address anOwner) internal virtual {
-        _transferOwnership(anOwner);
+        __Ownable_init(anOwner);
     }
 
 }
