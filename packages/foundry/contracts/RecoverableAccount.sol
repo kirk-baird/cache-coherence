@@ -40,10 +40,9 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
     */
 
     // Create a RecoverableAccount
-    constructor(IEntryPoint anEntryPoint, address anOwner) {
+    constructor(IEntryPoint anEntryPoint) {
         // TODO: Add world ID, CCIP Router address, dst chain, dst address
         ENTRY_POINT = anEntryPoint;
-        owner = anOwner;
     }
 
     /**
