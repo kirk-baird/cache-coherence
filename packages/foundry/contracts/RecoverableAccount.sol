@@ -7,11 +7,14 @@ pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
 import "@account-abstraction/core/BaseAccount.sol";
 import "@account-abstraction/core/Helpers.sol";
 import "@account-abstraction/samples/callback/TokenCallbackHandler.sol";
+
+import "./Recoverer.sol";
 
 /**
   * RecoverableAccount.
@@ -20,29 +23,16 @@ import "@account-abstraction/samples/callback/TokenCallbackHandler.sol";
   *  has a single signer that can send requests through the entryPoint.
   *  The recoverable extension allows authentication through a WorldCoin ID
   */
-contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
+contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, Recoverer {
     /**
     * Constants and Immutables
     */
     IEntryPoint private immutable ENTRY_POINT;
 
     /**
-    * Storage variables
-    */
-    address public owner;
-
-    /**
     * Events
     */
     event AccountRecovered(address indexed oldOwner, address indexed newOwner);
-
-    /**
-    * Modifiers
-    */
-    modifier onlyOwner() {
-        _onlyOwner();
-        _;
-    }
 
     /*
     * Public and External Functions
@@ -122,9 +112,11 @@ contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
     * Recovery function to begin update of the `owner` address.
     * Authenticates identity via WorldCoin
     */
-    function recoverAccount() external {
+    function recoverAccount(address newOwner, RecoveryPayload calldata recoveryPayload) external {
         // TODO: Add function parameters
         // TODO: Call CCIP with world coin authentication
+
+        _updateOwner();
     }
 
     /**
@@ -139,15 +131,11 @@ contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
         // emit AccountRecovered(oldOwner, newOwner);
     }
 
-
-
-    /*
-    * Internal and Private functions
-    */
-
-    function _onlyOwner() internal view {
-        //directly from EOA owner, or through the account itself (which gets redirected through execute())
-        require(msg.sender == owner || msg.sender == address(this), "only owner");
+    // Overrides OZ's Ownable.sol to support calls to itself
+    function _checkOwner() internal view override {
+        if (owner() != _msgSender() || address(this) != _msgSender()) {
+            revert OwnableUnauthorizedAccount(_msgSender());
+        }
     }
 
     // Require the function call went through EntryPoint or owner
