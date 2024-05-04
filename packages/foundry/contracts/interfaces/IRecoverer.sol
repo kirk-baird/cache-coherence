@@ -14,7 +14,6 @@ interface IRecoverer {
         uint256 merkleRoot;
         uint256 newNullifierHash;
         uint256[8] proof;
-        address owner;
         uint256 expectedSignalHash;
     }
 
