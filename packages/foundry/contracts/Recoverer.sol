@@ -67,10 +67,16 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
         ProcessedOnDestination // 2
     }
 
-    // Struct to store the status and acknowledger message ID of a message.
+    enum MessageType {
+        Registration,
+        Recovery
+    }
+
     struct MessageInfo {
         MessageStatus status;
         bytes32 acknowledgerMessageId;
+        MessageType messageType;
+        bytes executionData; // ABI-encoded data required to execute action after cross-chain verification
     }
 
     // Mapping to keep track of message IDs to their info (status & acknowledger message ID).
@@ -82,7 +88,9 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
     }
 
     function _sendIDToVerifier(
-        VerificationPayload memory _verificationPayload
+        VerificationPayload memory _verificationPayload,
+        MessageType _msgType,
+        bytes memory _executionData
     )
         internal
         returns (bytes32 messageId)
@@ -111,8 +119,10 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
             evm2AnyMessage
         );
 
-        // Update the message status to `Sent`
+        // Update the message info
         messagesInfo[messageId].status = MessageStatus.Sent;
+        messagesInfo[messageId].messageType = _msgType;
+        messagesInfo[messageId].executionData = _executionData;
 
         // Emit an event with message details
         emit MessageSent(
@@ -140,7 +150,7 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
         if (sender != WORLD_ID_VERIFIER) revert NotFromVerifier();
         if (sourceChainSelector != WORLD_ID_VERIFIER_CHAIN) revert UnsupportedVerifierChain();
 
-        (bytes32 initialMsgId,) = abi.decode(any2EvmMessage.data, (bytes32, address)); // Decode the data sent by the receiver
+        bytes32 initialMsgId = abi.decode(any2EvmMessage.data, (bytes32)); // Decode the data sent by the receiver
         bytes32 acknowledgerMsgId = any2EvmMessage.messageId;
         messagesInfo[initialMsgId].acknowledgerMessageId = acknowledgerMsgId; // Store the messageId of the received message
 
