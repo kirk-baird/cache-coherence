@@ -2,6 +2,7 @@
 pragma solidity ^0.8.23;
 
 import "../contracts/RecoverableAccount.sol";
+import "../contracts/RecoverableAccountFactory.sol";
 import "./DeployHelpers.s.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
@@ -19,9 +20,15 @@ contract DeployScript is ScaffoldETHDeploy {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        IEntryPoint entryPoint = IEntryPoint(address(0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789)); // EntryPoint only works for Base Sepolia!
-        RecoverableAccount recoverableAccount =
-            new RecoverableAccount(entryPoint, owner);
+        // TODO: get actual CCIP Router and other addresses
+        address fakeAddress = address(1);
+
+        address router = fakeAddress; // TODO
+        address worldIdVerifier = fakeAddress; // TODO
+        uint64 worldIdVerifierChain = 1; // TODO
+        IEntryPoint entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Base Sepolia!
+        RecoverableAccountFactory factory =
+            new RecoverableAccountFactory(entryPoint, router, worldIdVerifier, worldIdVerifierChain);
 
         vm.stopBroadcast();
 
@@ -30,7 +37,7 @@ contract DeployScript is ScaffoldETHDeploy {
          * These definitions are used to derive the types needed in the custom scaffold-eth hooks, for example.
          * This function should be called last.
          */
-        exportDeployments(recoverableAccount);
+        exportDeployments();
     }
 
     function test() public {}

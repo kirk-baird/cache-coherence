@@ -15,8 +15,8 @@ import "./RecoverableAccount.sol";
 contract RecoverableAccountFactory {
     RecoverableAccount public immutable accountImplementation;
 
-    constructor(IEntryPoint _entryPoint) {
-        accountImplementation = new RecoverableAccount(_entryPoint);
+    constructor(IEntryPoint _entryPoint, address _router, address _worldIdVerifier, uint64 _worldIdVerifierChain) {
+        accountImplementation = new RecoverableAccount(_entryPoint, _router, _worldIdVerifier, _worldIdVerifierChain);
     }
 
 

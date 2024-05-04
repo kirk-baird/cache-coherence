@@ -132,7 +132,7 @@ abstract contract Recoverer is IRecoverer, CCIPReceiver {
 
         require(any2EvmMessage.sourceChainSelector == WORLD_ID_VERIFIER_CHAIN, "ccipReceive: Invalid source chain");
         require(sender == WORLD_ID_VERIFIER, "ccipReceive: Invalid sender");
-        
+
         s_lastReceivedMessageId = any2EvmMessage.messageId; // fetch the messageId
         s_lastReceivedText = abi.decode(any2EvmMessage.data, (string)); // abi-decoding of the sent text
 

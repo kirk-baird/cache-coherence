@@ -7,9 +7,9 @@ pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
+import "@openzeppelin-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 
 import "@account-abstraction/core/BaseAccount.sol";
 import "@account-abstraction/core/Helpers.sol";
@@ -24,7 +24,7 @@ import "./Recoverer.sol";
   *  has a single signer that can send requests through the entryPoint.
   *  The recoverable extension allows authentication through a WorldCoin ID
   */
-contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable, Initializable {
+contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable {
     /**
     * Constants and Immutables
     */
@@ -40,7 +40,7 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
     */
 
     // Create a RecoverableAccount
-    constructor(IEntryPoint anEntryPoint) {
+    constructor(IEntryPoint anEntryPoint, address _router, address _worldIdVerifier, uint64 _worldIdVerifierChain) Recoverer(_router, _worldIdVerifier, _worldIdVerifierChain) {
         // TODO: Add world ID, CCIP Router address, dst chain, dst address
         ENTRY_POINT = anEntryPoint;
     }
@@ -59,9 +59,6 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
     function entryPoint() public view virtual override returns (IEntryPoint) {
         return ENTRY_POINT;
     }
-
-    // solhint-disable-next-line no-empty-blocks
-    receive() external payable {}
 
     /**
      * execute a transaction (called directly from owner, or by entryPoint)
@@ -126,7 +123,7 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
         // TODO: Add function parameters
         // TODO: Call CCIP with world coin authentication
 
-        _updateOwner();
+        transferOwnership(newOwner);
     }
 
     /**
@@ -141,6 +138,16 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
         // emit AccountRecovered(oldOwner, newOwner);
     }
 
+    function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, TokenCallbackHandler) returns (bool) {
+        // TODO: I don't think this is correct
+        return CCIPReceiver.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+    }
+
+    /*
+    * Internal and Private functions
+    */
+
+
     // Overrides OZ's Ownable.sol to support calls to itself
     function _checkOwner() internal view override {
         if (owner() != _msgSender() || address(this) != _msgSender()) {
@@ -150,14 +157,14 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
 
     // Require the function call went through EntryPoint or owner
     function _requireFromEntryPointOrOwner() internal view {
-        require(msg.sender == address(entryPoint()) || msg.sender == owner, "account: not Owner or EntryPoint");
+        require(msg.sender == address(entryPoint()) || msg.sender == owner(), "account: not Owner or EntryPoint");
     }
 
     /// implement template method of BaseAccount
     function _validateSignature(PackedUserOperation calldata userOp, bytes32 userOpHash)
     internal override virtual returns (uint256 validationData) {
         bytes32 hash = MessageHashUtils.toEthSignedMessageHash(userOpHash);
-        if (owner != ECDSA.recover(hash, userOp.signature))
+        if (owner() != ECDSA.recover(hash, userOp.signature))
             return SIG_VALIDATION_FAILED;
         return SIG_VALIDATION_SUCCESS;
     }
@@ -173,7 +180,13 @@ contract RecoverableAccount is Ownable2Step, BaseAccount, TokenCallbackHandler, 
 
     function _authorizeUpgrade(address newImplementation) internal view override {
         (newImplementation);
-        _onlyOwner();
+        // TODO: Verification
+        require(msg.sender == owner());
     }
+
+    function _initialize(address anOwner) internal virtual {
+        _transferOwnership(anOwner);
+    }
+
 }
 
