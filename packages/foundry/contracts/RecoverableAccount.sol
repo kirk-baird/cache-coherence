@@ -36,6 +36,14 @@ contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
     */
     event AccountRecovered(address indexed oldOwner, address indexed newOwner);
 
+    /**
+    * Modifiers
+    */
+    modifier onlyOwner() {
+        _onlyOwner();
+        _;
+    }
+
     /*
     * Public and External Functions
     */
@@ -45,7 +53,6 @@ contract RecoverableAccount is BaseAccount, TokenCallbackHandler {
         // TODO: Add world ID, CCIP Router address, dst chain, dst address
         ENTRY_POINT = anEntryPoint;
         owner = anOwner;
-        emit SimpleAccountInitialized(anEntryPoint, anOwner);
     }
 
     /// @inheritdoc BaseAccount
