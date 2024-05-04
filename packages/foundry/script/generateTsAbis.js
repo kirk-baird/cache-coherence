@@ -102,12 +102,12 @@ function main() {
     transactionsCreate.forEach((transaction) => {
       const artifact = getArtifactOfContract(transaction.contractName);
 
-      console.log("chain")
-      console.log(chain)
-      console.log("transaction")
-      console.log(transaction)
-      console.log("deployments")
-      console.log(deployments)
+      // console.log("chain")
+      // console.log(chain)
+      // console.log("transaction")
+      // console.log(transaction)
+      // console.log("deployments")
+      // console.log(deployments)
       allGeneratedContracts[chain][
         deployments[chain][transaction.contractAddress] ||
           transaction.contractName

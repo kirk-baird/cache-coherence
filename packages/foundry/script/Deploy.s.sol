@@ -26,20 +26,12 @@ contract DeployScript is ScaffoldETHDeploy {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        // Create a new EntryPoint
-        IEntryPoint entryPoint = new EntryPoint();
-
-        // TODO: worldIdVerifier needs to be deployed
-        address fakeAddress = address(0x0000000071727De22E5E9d8BAf0edAc6f37da032);
-        address router = fakeAddress; // local testnet only
-        address worldIdVerifier = fakeAddress; // local testnet only
-        uint64 worldIdVerifierChain = 1; // local testnet only
-
         // Sepolia Base Addresses
         // if (block.chainid == 0) {
-        entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Alchemy
-        worldIdVerifierChain = 16015286601757825753; // ETH Sepolia chainId
-        router = address(0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93); // Base Sepolia Router
+        IEntryPoint entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Alchemy
+        uint64 worldIdVerifierChain = 16015286601757825753; // ETH Sepolia chainId
+        address router = address(0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93); // Base Sepolia Router
+        address worldIdVerifier = address(0x578C5BA054183340da4842C392B5cF8D158F0D9a);
         // }
 
         // Create a RecoverableAccountFactory
