@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-import "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import "@openzeppelin-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 
 import "@account-abstraction/core/BaseAccount.sol";
 import "@account-abstraction/core/Helpers.sol";
@@ -26,7 +26,7 @@ import "./helpers/ByteHasher.sol";
   *  has a single signer that can send requests through the entryPoint.
   *  The recoverable extension allows authentication through a WorldCoin ID
   */
-contract RecoverableAccount is OwnableUpgradeable, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable {
+contract RecoverableAccount is Ownable2StepUpgradeable, BaseAccount, TokenCallbackHandler, Recoverer, UUPSUpgradeable {
     /**
     * Constants and Immutables
     */
@@ -124,11 +124,44 @@ contract RecoverableAccount is OwnableUpgradeable, BaseAccount, TokenCallbackHan
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
+    // TODO onlyowner or only once, protect
+    // Have register as a separate step after constructor (for now)
+    // to save having to pre-calculate the wallet address when making the signal offchain
+    function registerWorldId(RegistrationPayload memory _registrationPayload) public onlyOwner returns (bytes32) {
+        // Construct signal using on-chain data
+        RegistrationSignal memory signal = RegistrationSignal({
+            signalId: REGISTER_SIGNAL_ID,
+            chainId: block.chainid,
+            wallet: address(this),
+            initialOwner: owner()
+        });
+
+        uint256 _signalHash = ByteHasher.hashToField(abi.encode(signal));
+
+        // signal sanity check
+        // require(_registrationPayload.expectedSignalHash == _signalHash, "register: Unexpected signal hash");
+
+        // perform verification
+        VerificationPayload memory verificationPayload = VerificationPayload({
+            signalHash: _signalHash,
+            merkleRoot: _registrationPayload.merkleRoot,
+            nullifierHash: _registrationPayload.newNullifierHash,
+            proof: _registrationPayload.proof
+        });
+
+        // ABI-encode execution data
+        bytes memory executionData = abi.encode(_registrationPayload.newNullifierHash);
+
+        return _sendIDToVerifier(verificationPayload, MessageType.Registration, executionData);
+    }
+
     /**
     * Recovery function to begin update of the `owner` address.
     * Authenticates identity via WorldCoin
     */
     function recoverAccount(RecoveryPayload calldata _recoveryPayload) external payable returns (bytes32) {
+        require(nullifierHash != uint256(0), "NullifierHash unset");
+
         // Construct signal using on-chain data
         RecoverySignal memory signal = RecoverySignal({
             signalId: RECOVERY_SIGNAL_ID,
@@ -171,7 +204,7 @@ contract RecoverableAccount is OwnableUpgradeable, BaseAccount, TokenCallbackHan
 
         // Decode initialMsgId
         bytes32 initialMsgId = abi.decode(any2EvmMessage.data, (bytes32));
-        
+
         // Get message type from messageId
         MessageType msgType = messagesInfo[initialMsgId].messageType;
 
@@ -248,7 +281,8 @@ contract RecoverableAccount is OwnableUpgradeable, BaseAccount, TokenCallbackHan
         address newOwner = abi.decode(abiEncodedExecutionData, (address));
 
         // Transfer ownership to new owner
-        _transferOwnership(newOwner);
+        // Ok thanks to _checkOwner override
+        this.transferOwnership(newOwner);
     }
 
 
