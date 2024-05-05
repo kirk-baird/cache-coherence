@@ -31,7 +31,7 @@ contract DeployScript is ScaffoldETHDeploy {
         IEntryPoint entryPoint = IEntryPoint(address(0x0000000071727De22E5E9d8BAf0edAc6f37da032)); // EntryPoint only works for Alchemy
         uint64 worldIdVerifierChain = 16015286601757825753; // ETH Sepolia chainId from CCIP
         address router = address(0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93); // Base Sepolia Router
-        address worldIdVerifier = address(0x98D85df420E932038F0E72d91d5231c092e9c793); // ETH Sepolid `WorldIDVerifier.sol`
+        address worldIdVerifier = address(0x6f3E0ACBe500948e7c43664C684628882574A59B); // ETH Sepolid `WorldIDVerifier.sol`
         // }
 
         // Create a RecoverableAccountFactory

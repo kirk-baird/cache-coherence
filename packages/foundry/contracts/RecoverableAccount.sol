@@ -164,6 +164,7 @@ contract RecoverableAccount is
     // to save having to pre-calculate the wallet address when making the signal offchain
     function registerWorldId(RegistrationPayload memory _registrationPayload)
         public
+        payable
         onlyOwner
         returns (bytes32)
     {
