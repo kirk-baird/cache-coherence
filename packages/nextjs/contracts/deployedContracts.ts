@@ -1654,7 +1654,7 @@ const deployedContracts = {
               internalType: "bytes32",
             },
           ],
-          stateMutability: "nonpayable",
+          stateMutability: "payable",
         },
         {
           type: "function",
@@ -2294,7 +2294,7 @@ const deployedContracts = {
   },
   84532: {
     RecoverableAccountFactory: {
-      address: "0xCcd9522EAe78FF0B2c58A65CA275ab6D620EAFED",
+      address: "0x4ce9d056c5D4dA4C07084e61346d14Fe51e19eF7",
       abi: [
         {
           type: "constructor",
@@ -2387,7 +2387,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     RecoverableAccount: {
-      address: "0xB1a064027aaEEEB8D1f6E7cbe91b8EA66Bbf5015",
+      address: "0x58b114de8B13ce02F0c8A694BED285E30d497082",
       abi: [
         {
           type: "constructor",
@@ -2913,7 +2913,7 @@ const deployedContracts = {
               internalType: "bytes32",
             },
           ],
-          stateMutability: "nonpayable",
+          stateMutability: "payable",
         },
         {
           type: "function",
@@ -5200,7 +5200,7 @@ const deployedContracts = {
               internalType: "bytes32",
             },
           ],
-          stateMutability: "nonpayable",
+          stateMutability: "payable",
         },
         {
           type: "function",
