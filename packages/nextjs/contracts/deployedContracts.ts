@@ -1654,7 +1654,7 @@ const deployedContracts = {
               internalType: "bytes32",
             },
           ],
-          stateMutability: "payable",
+          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -1806,6 +1806,25 @@ const deployedContracts = {
           ],
           outputs: [],
           stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "AccountRecoverFailure",
+          inputs: [
+            {
+              name: "messageId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "attemptedOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
         },
         {
           type: "event",
@@ -1984,18 +2003,37 @@ const deployedContracts = {
         },
         {
           type: "event",
+          name: "RegisterNullifierFailure",
+          inputs: [
+            {
+              name: "messageId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "attemptedNullifierHash",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
           name: "SetNullifierHash",
           inputs: [
             {
               name: "oldNullifierHash",
               type: "uint256",
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
             },
             {
               name: "newNullifierHash",
               type: "uint256",
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
             },
           ],
@@ -2256,7 +2294,7 @@ const deployedContracts = {
   },
   84532: {
     RecoverableAccountFactory: {
-      address: "0x31d88E8eAF4833193452ae36A1f0D3412D445155",
+      address: "0xCcd9522EAe78FF0B2c58A65CA275ab6D620EAFED",
       abi: [
         {
           type: "constructor",
@@ -2349,7 +2387,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     RecoverableAccount: {
-      address: "0xEF2E5D6b3C9d87bB4AC45506A287154C10e637d0",
+      address: "0xB1a064027aaEEEB8D1f6E7cbe91b8EA66Bbf5015",
       abi: [
         {
           type: "constructor",
@@ -2875,7 +2913,7 @@ const deployedContracts = {
               internalType: "bytes32",
             },
           ],
-          stateMutability: "payable",
+          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -3027,6 +3065,25 @@ const deployedContracts = {
           ],
           outputs: [],
           stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "AccountRecoverFailure",
+          inputs: [
+            {
+              name: "messageId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "attemptedOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
         },
         {
           type: "event",
@@ -3205,18 +3262,37 @@ const deployedContracts = {
         },
         {
           type: "event",
+          name: "RegisterNullifierFailure",
+          inputs: [
+            {
+              name: "messageId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "attemptedNullifierHash",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
           name: "SetNullifierHash",
           inputs: [
             {
               name: "oldNullifierHash",
               type: "uint256",
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
             },
             {
               name: "newNullifierHash",
               type: "uint256",
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
             },
           ],
@@ -5124,7 +5200,7 @@ const deployedContracts = {
               internalType: "bytes32",
             },
           ],
-          stateMutability: "payable",
+          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -5276,6 +5352,25 @@ const deployedContracts = {
           ],
           outputs: [],
           stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "AccountRecoverFailure",
+          inputs: [
+            {
+              name: "messageId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "attemptedOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
         },
         {
           type: "event",
@@ -5454,18 +5549,37 @@ const deployedContracts = {
         },
         {
           type: "event",
+          name: "RegisterNullifierFailure",
+          inputs: [
+            {
+              name: "messageId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "attemptedNullifierHash",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
           name: "SetNullifierHash",
           inputs: [
             {
               name: "oldNullifierHash",
               type: "uint256",
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
             },
             {
               name: "newNullifierHash",
               type: "uint256",
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
             },
           ],

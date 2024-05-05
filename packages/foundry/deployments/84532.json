@@ -1,6 +1,6 @@
 {
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032": "EntryPoint",
-  "0x31d88E8eAF4833193452ae36A1f0D3412D445155": "RecoverableAccountFactory",
-  "0xEF2E5D6b3C9d87bB4AC45506A287154C10e637d0": "RecoverableAccount",
+  "0xB1a064027aaEEEB8D1f6E7cbe91b8EA66Bbf5015": "RecoverableAccount",
+  "0xCcd9522EAe78FF0B2c58A65CA275ab6D620EAFED": "RecoverableAccountFactory",
   "networkName": "baseSepolia"
 }

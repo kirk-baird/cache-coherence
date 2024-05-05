@@ -71,7 +71,7 @@ contract RecoverableAccount is
         uint64 _worldIdVerifierChain
     ) Recoverer(_router, _worldIdVerifier, _worldIdVerifierChain) {
         ENTRY_POINT = anEntryPoint;
-        _disableInitializers();
+        // _disableInitializers();
     }
 
     /**
